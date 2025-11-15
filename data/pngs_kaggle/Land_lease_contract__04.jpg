@@ -1,0 +1,62 @@
+<html>
+<head>
+    <title>Закрыто, извините. </title>
+	<meta name="robots" content="index,follow">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link href="/popInc/css/style.shop.css" rel="stylesheet" media="all">
+</head>
+<body>
+	<div id="page-preloader">
+		<div class="comm_block1">
+
+		</div>
+		<div class="sale_block">
+			<div class="main-sale"> 
+				<div class="main-sale__title">Извините, мы закрыты </div> 														
+				<div class="main-sale__close">																					
+					<img alt="Закрыто" src="/popInc/image/shop/close.jpg" class="main-sale__close--img"></img>					
+				</div>																											
+				<a href="http://siterecovery.net/domains" class="main-sale__text-more--link"> 						
+					<div class="main-sale__text-sale main-sale__text-sale--message">Домен продается за 10000 рублей</div>
+					<div  class="main-sale__text-more main-sale__text-more--noShop" >Купить домен</div> 															
+				</a> 																												
+			</div>
+			<div class="comm_block3">
+
+			</div>
+		</div>
+		<div class="comm_block2">
+
+		</div>
+	</div>
+	</body>
+</html>
+
+
+
+<script type="text/javascript">
+    (function (d, w, c) {
+        (w[c] = w[c] || []).push(function() {
+            try {
+                w.yaCounter62629645 = new Ya.Metrika({
+                    id:62629645,
+                    clickmap:true,
+                    trackLinks:true,
+                    accurateTrackBounce:true
+                });
+            } catch(e) { }
+        });
+
+        var n = d.getElementsByTagName("script")[0],
+            s = d.createElement("script"),
+            f = function () { n.parentNode.insertBefore(s, n); };
+        s.type = "text/javascript";
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/watch.js";
+
+        if (w.opera == "[object Opera]") {
+            d.addEventListener("DOMContentLoaded", f, false);
+        } else { f(); }
+    })(document, window, "yandex_metrika_callbacks");
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/62629645" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
