@@ -3535,20 +3535,7 @@
       }
     },
     "page_4": {
-      "annotations": [
-        {
-          "annotation_96": {
-            "category": "qr",
-            "bbox": {
-              "x": 1095,
-              "y": 1586,
-              "width": 49.38,
-              "height": 51.03
-            },
-            "area": 2519.861
-          }
-        }
-      ],
+      "annotations": [],
       "page_size": {
         "width": 1190,
         "height": 1684
