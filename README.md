@@ -1,4 +1,4 @@
-# Armeta Inspector – AI-Powered Document Analysis & PDF Reporting Platform
+# Armeta Inspector - AI-Powered Document Analysis & PDF Reporting Platform
 
 Armeta Inspector is a full-stack system for detecting **signatures**, **stamps**, and **QR codes** in PDF documents and images.  
 It includes:
