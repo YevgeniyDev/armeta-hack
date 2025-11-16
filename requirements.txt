@@ -3,3 +3,9 @@ opencv-python
 pymupdf
 albumentations
 tqdm
+fastapi
+uvicorn[standard]
+python-multipart
+ultralytics
+reportlab
+pypdf

@@ -47,8 +47,8 @@ def pdf_to_images(
 
 
 def convert_all_pdfs(
-    pdf_dir: str = "data/pdfs_given",
-    out_dir: str = "data/pngs_processed",
+    pdf_dir: str = "data/testing",
+    out_dir: str = "data/pngs_processed_testing",
     dpi: int = 300,
     img_format: str = "png"
 ):
