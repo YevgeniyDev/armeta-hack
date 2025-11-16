@@ -1,22 +1,20 @@
 import React, { useState } from "react";
-import { analyzeDocument } from "./api";
+import { analyzeDocument, downloadReport } from "./api";
 import type { DocResult, DetectionClass } from "./types";
 import { PageViewer } from "./components/PageViewer";
-import Logo from "./assets/favicon.png";
+import logo from "./assets/favicon.png";
 
 const ALL_CLASSES: DetectionClass[] = ["signature", "stamp", "qr"];
 
-function App() {
+const App: React.FC = () => {
   const [docs, setDocs] = useState<DocResult[]>([]);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const [visibleClasses, setVisibleClasses] =
     useState<DetectionClass[]>(ALL_CLASSES);
   const [minScore, setMinScore] = useState(0.3);
-
-  // drag-and-drop state
-  const [isDragging, setIsDragging] = useState(false);
 
   const selectedDoc =
     docs.find((d) => d.id === selectedDocId) ?? docs[0] ?? null;
@@ -52,15 +50,14 @@ function App() {
     setSelectedPageIndex(nextPage.pageIndex);
   };
 
-  // -------- общий обработчик загрузки файла (и для кнопки, и для dnd) ------
+  // -------- common file processing (upload or drop) ----------
   const processFile = async (file: File) => {
-    if (!file) return;
     setIsUploading(true);
     try {
       const result = await analyzeDocument(file);
       setDocs((prev) => [result, ...prev]);
       setSelectedDocId(result.id);
-      setSelectedPageIndex(result.pages[0].pageIndex);
+      setSelectedPageIndex(result.pages[0]?.pageIndex ?? 0);
     } catch (err) {
       console.error(err);
       alert("Failed to analyze document");
@@ -69,7 +66,6 @@ function App() {
     }
   };
 
-  // input[type=file]
   const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (
     e
   ) => {
@@ -79,24 +75,26 @@ function App() {
     e.target.value = "";
   };
 
-  // -------- drag & drop handlers ----------
-  const handleDragOver: React.DragEventHandler<HTMLDivElement> = (e) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "copy";
-    if (!isDragging) setIsDragging(true);
+    e.stopPropagation();
+    setIsDragging(true);
   };
 
-  const handleDragLeave: React.DragEventHandler<HTMLDivElement> = (e) => {
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    // чтобы не мигало при переходе между дочерними элементами
-    if ((e.target as HTMLElement) === e.currentTarget) {
+    e.stopPropagation();
+    // leave only when actually leaving the drop container
+    if (e.currentTarget === e.target) {
       setIsDragging(false);
     }
   };
 
-  const handleDrop: React.DragEventHandler<HTMLDivElement> = async (e) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
+
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
     await processFile(file);
@@ -108,34 +106,62 @@ function App() {
     );
   };
 
+  const handleDownloadReport = async () => {
+    if (!selectedDoc) return;
+    try {
+      await downloadReport(selectedDoc.id, selectedDoc.filename);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to download report");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
       {/* Top bar */}
       <header className="flex items-center justify-between px-6 py-3 border-b border-slate-800 bg-slate-950/90 backdrop-blur">
         <div className="flex items-center gap-3">
-          <img
-            src={Logo}
-            alt="Armeta logo"
-            className="h-8 w-8 object-contain rounded-lg"
-          />
+          {/* LOGO */}
+          <div className="h-8 w-8 rounded-lg overflow-hidden bg-emerald-500 flex items-center justify-center">
+            <img
+              src={logo}
+              alt="Armeta logo"
+              className="h-7 w-7 object-contain"
+            />
+          </div>
           <div>
-            <div className="font-semibold leading-tight">Armeta Inspector</div>
+            <div className="font-semibold leading-tight text-sm">
+              Armeta Inspector
+            </div>
             <div className="text-xs text-slate-400">
               Signatures · Stamps · QR codes
             </div>
           </div>
         </div>
 
-        <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-sm font-medium hover:bg-emerald-400 cursor-pointer disabled:opacity-50">
-          <input
-            type="file"
-            accept=".pdf,image/*"
-            className="hidden"
-            onChange={handleFileChange}
-            disabled={isUploading}
-          />
-          {isUploading ? "Processing..." : "Upload document"}
-        </label>
+        <div className="flex items-center gap-3">
+          {/* Download report */}
+          <button
+            type="button"
+            onClick={handleDownloadReport}
+            disabled={!selectedDoc || isUploading}
+            className="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900 text-xs font-medium text-slate-100 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Download report
+          </button>
+
+          {/* Upload button */}
+          <label className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 text-xs font-medium hover:bg-emerald-400 cursor-pointer disabled:opacity-50">
+            <input
+              type="file"
+              accept=".pdf,image/*"
+              className="hidden"
+              onChange={handleFileChange}
+              disabled={isUploading}
+            />
+            {isUploading ? "Processing..." : "Upload document"}
+          </label>
+        </div>
       </header>
 
       {/* Main layout */}
@@ -158,7 +184,7 @@ function App() {
                   setSelectedDocId(doc.id);
                   setSelectedPageIndex(doc.pages[0]?.pageIndex ?? 0);
                 }}
-                className={`w-full text-left px-2 py-1.5 rounded-md text-sm border border-transparent hover:border-slate-700 ${
+                className={`w-full text-left px-2 py-1.5 rounded-md text-xs border border-transparent hover:border-slate-700 ${
                   doc.id === selectedDoc?.id
                     ? "bg-slate-800 border-slate-700"
                     : "bg-slate-900"
@@ -196,7 +222,7 @@ function App() {
           )}
         </aside>
 
-        {/* Center: page viewer or drop zone */}
+        {/* Center: page viewer / drop zone */}
         <main className="flex-1 flex flex-col items-stretch justify-center px-4 py-4 gap-3">
           {selectedDoc && selectedPage ? (
             <PageViewer
@@ -213,26 +239,39 @@ function App() {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`flex-1 flex items-center justify-center`}
+              className="flex-1 flex items-center justify-center"
             >
-              <div
-                className={`max-w-xl w-full h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-colors
-                  ${
-                    isDragging
-                      ? "border-emerald-400 bg-emerald-500/10"
-                      : "border-slate-700 bg-slate-900/40"
-                  }`}
-              >
-                <p className="text-sm font-medium">Drop a PDF or image here</p>
-                <p className="text-xs text-slate-400 mt-2">
-                  …or click{" "}
-                  <span className="font-semibold">Upload document</span> in the
-                  top-right corner
-                </p>
-                <p className="text-[11px] text-slate-500 mt-3">
-                  Supported: PDF, PNG, JPG, JPEG, TIFF, BMP
-                </p>
-              </div>
+              {isUploading ? (
+                // Loading state while backend analyzes the dropped/uploaded file
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-12 h-12 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-slate-300 text-sm">
+                    Analyzing document...
+                  </p>
+                </div>
+              ) : (
+                // Normal drop zone
+                <div
+                  className={`max-w-xl w-full h-64 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center transition-colors
+                    ${
+                      isDragging
+                        ? "border-emerald-400 bg-emerald-500/10"
+                        : "border-slate-700 bg-slate-900/40"
+                    }`}
+                >
+                  <p className="text-sm font-medium">
+                    Drop a PDF or image here
+                  </p>
+                  <p className="text-xs text-slate-400 mt-2">
+                    …or click{" "}
+                    <span className="font-semibold">Upload document</span> in
+                    the top-right corner
+                  </p>
+                  <p className="text-[11px] text-slate-500 mt-3">
+                    Supported: PDF, PNG, JPG, JPEG, TIFF, BMP
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </main>
@@ -342,6 +381,6 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
 export default App;
