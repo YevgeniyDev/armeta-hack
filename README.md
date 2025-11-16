@@ -1,290 +1,211 @@
-=====================================================================
-                         ARMETA INSPECTOR
-        AI-Powered System for Document Analysis & PDF Reporting
-=====================================================================
+# Armeta Inspector – AI-Powered Document Analysis & PDF Reporting Platform
 
-Armeta Inspector is a full-stack application for detecting
-SIGNATURES, STAMPS, and QR CODES in documents (PDF & images).
+Armeta Inspector is a full-stack system for detecting **signatures**, **stamps**, and **QR codes** in PDF documents and images.  
 It includes:
 
- - FastAPI Backend
- - YOLOv8 Detection Model
- - React Frontend (Drag & Drop)
- - Interactive Document Viewer (zoom + pan)
- - Stylish PDF Summary Report (Dark Theme)
- - Batch Folder Processing Script
- - Support for Cyrillic filenames
- - Downloadable combined report (summary + original PDF)
- - Confidence filtering and statistics
+- 🚀 FastAPI backend (YOLO-based detection + PDF reporting)
+- 🖥️ React + Tailwind frontend (interactive viewer)
+- 🧩 Batch processing CLI script
+- 📄 Beautiful dark-themed PDF summary generator
+- 📦 Runtime storage of document pages
+- 🔍 Zooming, panning, bounding boxes, filters
 
-This file describes HOW TO INSTALL, HOW IT WORKS, and HOW TO USE the
-whole project.
+---
 
+## 📁 Project Structure
 
-=====================================================================
-1. PROJECT STRUCTURE
-=====================================================================
-
-armeta-inspector/
+```bash
+armeta-hack/
 │
-├─ backend/
-│   ├─ main.py                     ← FastAPI server
-│   ├─ models/best_yolo_raw.pt     ← YOLO detection model
-│   ├─ assets/
-│   │     ├─ favicon.png           ← Logo used in PDF
-│   │     └─ fonts/*.ttf           ← Roboto fonts
-│   ├─ runtime_data/               ← Uploaded files + generated data
-│   └─ requirements.txt
+├── armeta_backend/
+│ ├── main.py # FastAPI server + YOLO detection + PDF reporting
+│ ├── report_pdf.py # just a testing file to create pdf report(unnecessary now, but in case anything it's still here)
 │
-├─ frontend/
-│   ├─ src/
-│   │     ├─ App.tsx               ← Main React UI
-│   │     ├─ PageViewer.tsx        ← Zoom, pan, boxes
-│   │     └─ api.ts                ← Requests to backend
-│   └─ public/
+├── armeta-frontend/
+│ ├── src/
+│ │ ├── App.tsx # Main React SPA
+│ │ ├── api.ts # Backend API integration
+| | ├── types.ts # Detection classes
+│ │ ├── main.tsx # Displaying
+│ │ ├── assets/
+│ │ │ └── favicon.png # logo
+│ │ ├── components/
+│ │ │ └── PageViewer.tsx # Zoom + Pan viewer
+| └── public/
 │
-├─ tools/
-│   └─ batch_detect_to_json.py     ← Batch folder → JSON processing
+├── data/
+│ ├── metadata/ # Preprocessing data about resizing/padding
+│ ├── pdfs_given/ # PDF files that were given for training and testing
+│ ├── pngs_kaggle/ # PNGs from open-source databases
+| ├── pngs_processed/ # Converted PNGs from PDFs for training
+| ├── pngs_processed_testing/ # Converted PNGs from PDFs for testing
+| ├── preprocessed/ # tiles(PNGs divided into tiles) for training and testing
+| ├── testing/ # PDFs for testing
+| ├── yolo_raw/ # Data ready for training(PNGs with labels)
+|
+├── models/ # trained models, ready for testing
+|
+├── notebook_experiments/ # Experimental codes to run inference, resizing and visualization of annotations
+|
+├── outputs/ # Resulting PNGs from finished models with labelled boxes + json results and json for training
+|
+├── src/ # main codes used for preprocessing and JSON output
+│ ├── batch_detect_to_json.py # CLI tool for bulk image detection
+| ├── preprocessing # building of datasets, pdf2image converter, resizing, bbox utils
+| └── tiling # Tiling codes
 │
-└─ README.txt (this file)
+└── requirements.txt # Requirements (dependencies)
+|
+└── selected_annotations_generated.json # resulting JSON file
+|
+└── README.md
+```
+---
 
+## ⚙️ Backend Installation (FastAPI + YOLO)
 
-=====================================================================
-2. BACKEND INSTALLATION (FASTAPI)
-=====================================================================
+### 1. Create & activate virtual environment
+```bash
+cd armeta_backend
+python -m venv venv
+venv\Scripts\activate # Windows
+source venv/bin/activate # macOS/Linux
+```
+### 2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+### 3. Run backend
+```bash
+uvicorn armeta_backend.main:app --reload # run the backend
+```
+Backend runs at:
+API root → http://127.0.0.1:8000
+Swagger docs → http://127.0.0.1:8000/docs
 
-1. Open terminal in /backend
+## 🎨 Frontend Installation (React + Tailwind)
+### 1. Install dependencies
+```bash
+cd armeta-frontend
+npm install
+```
 
-2. Create virtual environment:
-      python -m venv venv
+### 2. Run development server
+```bash
+npm run dev
+```
 
-3. Activate:
-   - Windows: venv\Scripts\activate
-   - Mac/Linux: source venv/bin/activate
+Frontend runs at:
+➡️ http://127.0.0.1:5173
 
-4. Install dependencies:
-      pip install -r requirements.txt
+## 🔥 Key Features
+### Backend
+```bash
+✔ Accepts PDFs & images
+✔ Converts PDF → PNG pages
+✔ Runs YOLO detection on each page
+✔ Saves results to runtime_data/<doc_id>/result.json
+✔ Builds a dark-themed PDF report:
+    Logo header
+    File metadata
+    Total detections with badges
+    Per-page breakdown
+    Average confidence score
+    Summary page merged with original PDF
+```
 
-5. Start server:
-      uvicorn main:app --reload --port 8000
+### Frontend
+```bash
+✔ Drag-and-drop upload
+✔ Loading spinner
+✔ Multi-page preview
+✔ Zoom (wheel), pan (drag)
+✔ Bounding boxes (signature, stamp, QR)
+✔ Filters by class
+✔ Confidence slider
+✔ Download report button
+```
 
-Backend will run at:
-      http://127.0.0.1:8000
+## 📄 Dark PDF Report Example
 
-FastAPI endpoints:
-  POST /analyze           → Analyze document
-  GET  /docs/<id>/report  → Download PDF report
-  GET  /health            → Health check
+### Generated report includes:
+```bash
+  Logo + title header
+  File name (supports Cyrillic)
+  Pages analyzed
+  Average confidence score
+  Detection totals
+  Per-page summary (table)
+  Dark background matching site branding
+```
 
+## 🧩 Batch Processing Tool (CLI)
+### Use when analyzing a whole folder:
+```bash
+python -m src.batch_detect_to_json
+```
+It saves the resulting JSON file into outputs/ as a "selected_annotations_generated.json"
 
-=====================================================================
-3. FRONTEND INSTALLATION (REACT + VITE)
-=====================================================================
+## 📦 Runtime Storage Layout
+### After each POST /analyze, backend creates:
+```bash
+backend/runtime_data/<doc_id>/
+│
+├── source.pdf # Original uploaded file
+├── pages/ # Extracted PNG pages
+│   ├── page_001.png
+│   ├── page_002.png
+│   └── ...
+└── result.json # Final detections (DocResult)
+```
 
-1. Open terminal in /frontend
-2. Install packages:
-      npm install
-3. Start dev server:
-      npm run dev
+## 🧪 How to Test the System
+```bash
+Start backend + frontend
+Drag-and-drop any PDF or image
+Wait for the loader
+View detections, zoom/pan, filter
+Click Download report
+Open final <file>_report.pdf
+```
 
-Frontend available at:
-      http://127.0.0.1:5173
+## 🛠 Technologies Used
+### Backend:
+```bash
+FastAPI
+YOLOv8 (Ultralytics)
+OpenCV
+Numpy
+PyMuPDF
+ReportLab
+PyPDF
+```
 
+### Frontend:
+```bash
+React + TypeScript
+TailwindCSS
+Vite
+```
 
-=====================================================================
-4. HOW THE SYSTEM WORKS (FULL PIPELINE)
-=====================================================================
+## 🚀 Deployment
+### Backend
+```bash
+uvicorn armeta_backend.main:app --reload # run the backend
+```
 
------------------------------
-STEP 1 — User uploads a PDF or image
------------------------------
-Frontend sends:
-      POST /analyze
+### Frontend
+```bash
+npm run build
+```
 
-Backend:
- - Saves file into runtime_data/<uuid>/
- - Converts PDF → pages (PNG)
- - Runs YOLO model on each page
- - Produces detection list:
-        bounding boxes
-        class names
-        confidence
- - Saves result.json
- - Returns page images + detected objects
-
------------------------------
-STEP 2 — Frontend displays results
------------------------------
-UI shows:
- - Preview of pages
- - Bounding boxes
- - Filtering buttons
- - Confidence slider
- - Interactive zoom + pan
- - Page switching
- - Drag & Drop upload
- - Loading spinner during processing
-
------------------------------
-STEP 3 — User downloads PDF report
------------------------------
-Frontend requests:
-      GET /docs/<uuid>/report
-
-Backend:
- - Reads result.json
- - Reads original PDF
- - Builds summary page (dark PDF)
-   including:
-      • Logo
-      • File name (Cyrillic supported)
-      • Pages analyzed
-      • Average confidence
-      • Total detections
-      • Per-page table
- - Appends original PDF pages
- - Returns final report.pdf
-
-
-=====================================================================
-5. PDF SUMMARY REPORT DETAILS
-=====================================================================
-
-The generated PDF includes:
-
- - Dark theme (matches frontend style)
- - Logo from /backend/assets/favicon.png
- - Title: "Armeta Inspector"
- - Subheader: "Signatures · Stamps · QR codes"
- - File name (supports Cyrillic)
- - Pages analyzed
- - Average confidence of all detections
- - Total detections grouped by class:
-       Signature, Stamp, QR code
- - Per-page summary table
- - Original PDF pages appended
-
-Report uses Roboto font to correctly display Cyrillic text.
-
-
-=====================================================================
-6. BATCH PROCESSING (FOLDER → JSON)
-=====================================================================
-
-Run this script:
-
-      python tools/batch_detect_to_json.py --input ./images --output result.json
-
-Creates a JSON file containing detections for ALL images in a folder.
-
-Example output:
-
-{
-  "page1.png": {
-      "signature": 2,
-      "stamp": 1,
-      "qr": 0,
-      "detections": [...]
-  },
-  "page2.png": {
-      ...
-  }
-}
-
-
-=====================================================================
-7. DOCUMENT VIEWER FEATURES (FRONTEND)
-=====================================================================
-
-The document viewer supports:
-
- - Mouse wheel zoom
- - Slider zoom
- - Click + drag panning
- - Colored bounding boxes:
-        signature = green
-        stamp     = blue
-        qr        = pink
- - Clickable filters
- - Confidence slider
- - Page navigation arrows
- - High-quality image scaling
-
-
-=====================================================================
-8. DRAG & DROP UPLOAD
-=====================================================================
-
-Features:
- - Highlight on drag-over
- - File drop detection
- - Automatic upload
- - Loading spinner while analyzing
- - Error handling
-
-
-=====================================================================
-9. MODEL INFORMATION
-=====================================================================
-
-YOLOv8 model file:
-      backend/models/best_yolo_raw.pt
-
-Loads once at startup:
-      model = YOLO("models/best_yolo_raw.pt")
-
-You can replace with your own trained model.
-
-
-=====================================================================
-10. TROUBLESHOOTING
-=====================================================================
-
-• Frontend CORS issues:
-  Ensure ports 5173 and 8000 are whitelisted in backend’s CORS settings.
-
-• YOLO loads slowly:
-  Move model to SSD or use lighter version.
-
-• PDF does not show Cyrillic:
-  Ensure Roboto-Regular.ttf and Roboto-Bold.ttf are installed.
-
-• Report not downloading:
-  Check backend/logs for path errors.
-
-
-=====================================================================
-11. FUTURE IMPROVEMENTS
-=====================================================================
-
- - OCR text extraction
- - Sensitive information redaction
- - Additional detection classes
- - Model auto-updater
- - Cloud storage (S3 / Azure)
- - Docker deployment
- - Processing pipeline for large batches
-
-
-=====================================================================
-12. SUMMARY
-=====================================================================
-
-Armeta Inspector is a complete AI-powered solution for document
-analysis, offering:
-
- - Full stack (FastAPI + React)
- - YOLO-based detection
- - Dark-themed PDF report
- - Drag & Drop interface
- - Zoom + pan viewer
- - Batch image processing
- - Confidence filtering
- - Cyrillic support
- - Logo integration
- - Per-page intelligent analysis
-
-=====================================================================
-End of README.txt
-=====================================================================
-
+## 📞 Support
+### If you'd like:
+```bash
+  OCR text extraction
+  Auto-translation
+  Document validation
+  More visualizations
+  Signature forgery detection
+```
+### Feel free to ask!
